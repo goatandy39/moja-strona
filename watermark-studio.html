@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WatermarkStudio</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap');
+
+  :root {
+    --bg: #0e0e0e;
+    --surface: #161616;
+    --border: #2a2a2a;
+    --accent: #c8f560;
+    --accent2: #f5c860;
+    --text: #f0f0f0;
+    --muted: #666;
+    --subtle: #1e1e1e;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 28px 48px;
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+  }
+
+  header h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2rem;
+    letter-spacing: -0.02em;
+    color: var(--text);
+  }
+
+  header h1 span {
+    color: var(--accent);
+    font-style: italic;
+  }
+
+  header p {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .main-grid {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    min-height: calc(100vh - 77px);
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    border-right: 1px solid var(--border);
+    padding: 32px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    overflow-y: auto;
+  }
+
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  /* PACK SETTINGS */
+  .field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .field label {
+    font-size: 0.75rem;
+    color: var(--muted);
+    font-weight: 400;
+  }
+
+  .field input[type="text"],
+  .field textarea {
+    background: var(--subtle);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 9px 12px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.78rem;
+    border-radius: 4px;
+    outline: none;
+    transition: border-color 0.15s;
+    width: 100%;
+  }
+
+  .field input[type="text"]:focus,
+  .field textarea:focus {
+    border-color: var(--accent);
+  }
+
+  .field textarea { resize: vertical; min-height: 60px; }
+
+  /* IMAGE SLOTS */
+  .img-slots {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .img-slot {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--subtle);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 8px 10px;
+  }
+
+  .img-slot-thumb {
+    width: 40px;
+    height: 40px;
+    border-radius: 3px;
+    background: var(--border);
+    object-fit: cover;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.6rem;
+    color: var(--muted);
+    overflow: hidden;
+  }
+
+  .img-slot-thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+  .img-slot-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .img-slot-name {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--muted);
+    margin-bottom: 2px;
+  }
+
+  .img-slot-val {
+    font-size: 0.78rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .btn-small {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    background: var(--border);
+    border: none;
+    color: var(--text);
+    padding: 5px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: background 0.15s;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .btn-small:hover { background: #333; }
+
+  /* WATERMARK CONTROLS */
+  .wm-text-row {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+  }
+
+  .wm-text-row .field { flex: 1; }
+
+  .color-pick {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--subtle);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 6px 10px;
+    margin-top: 6px;
+  }
+
+  .color-pick label { font-size: 0.75rem; color: var(--muted); flex: 1; }
+
+  .color-pick input[type="color"] {
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    border-radius: 3px;
+    padding: 0;
+  }
+
+  .range-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 4px;
+  }
+
+  .range-row label { font-size: 0.75rem; color: var(--muted); width: 80px; flex-shrink: 0; }
+
+  .range-row input[type="range"] {
+    flex: 1;
+    accent-color: var(--accent);
+    height: 2px;
+    cursor: pointer;
+  }
+
+  .range-val {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--accent);
+    width: 32px;
+    text-align: right;
+  }
+
+  /* PRESET BUTTONS */
+  .preset-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+
+  .preset-btn {
+    background: var(--subtle);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 8px 4px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: center;
+    line-height: 1.3;
+  }
+
+  .preset-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .preset-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(200,245,96,0.06); }
+
+  /* DOWNLOAD PACK BUTTON */
+  .btn-pack {
+    background: var(--accent);
+    color: #0e0e0e;
+    border: none;
+    padding: 13px 20px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: opacity 0.15s;
+    width: 100%;
+  }
+
+  .btn-pack:hover { opacity: 0.88; }
+
+  /* MAIN CONTENT */
+  .content {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .drop-zone {
+    border-bottom: 1px solid var(--border);
+    padding: 48px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    min-height: 220px;
+    cursor: pointer;
+    transition: background 0.15s;
+    position: relative;
+  }
+
+  .drop-zone.drag-over { background: rgba(200,245,96,0.04); border-color: var(--accent); }
+
+  .drop-icon {
+    font-size: 2.4rem;
+    opacity: 0.3;
+    line-height: 1;
+  }
+
+  .drop-zone h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.4rem;
+    color: var(--text);
+    opacity: 0.6;
+  }
+
+  .drop-zone p {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  #fileInput { display: none; }
+
+  /* PREVIEW AREA */
+  .preview-area {
+    flex: 1;
+    padding: 40px 48px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    align-items: center;
+  }
+
+  .preview-empty {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .preview-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    width: 100%;
+    max-width: 780px;
+  }
+
+  .preview-card-header {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .preview-card-name {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--muted);
+  }
+
+  .preview-canvas-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #111;
+    min-height: 300px;
+    max-height: 500px;
+  }
+
+  .preview-canvas-wrap canvas,
+  .preview-canvas-wrap video {
+    max-width: 100%;
+    max-height: 500px;
+    display: block;
+  }
+
+  .preview-actions {
+    padding: 12px 16px;
+    display: flex;
+    gap: 8px;
+    border-top: 1px solid var(--border);
+    justify-content: flex-end;
+  }
+
+  .btn-dl {
+    background: var(--accent2);
+    color: #0e0e0e;
+    border: none;
+    padding: 8px 16px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border-radius: 3px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: opacity 0.15s;
+  }
+
+  .btn-dl:hover { opacity: 0.85; }
+
+  .btn-dl-zip {
+    background: var(--accent);
+    color: #0e0e0e;
+    border: none;
+    padding: 8px 16px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border-radius: 3px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: opacity 0.15s;
+  }
+
+  .btn-dl-zip:hover { opacity: 0.85; }
+
+  .section-sep {
+    width: 100%;
+    max-width: 780px;
+    border-top: 1px solid var(--border);
+    margin: 4px 0;
+  }
+
+  .all-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    padding-bottom: 8px;
+  }
+
+  /* TOAST */
+  #toast {
+    position: fixed;
+    bottom: 28px;
+    right: 28px;
+    background: var(--accent);
+    color: #0e0e0e;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+    padding: 12px 20px;
+    border-radius: 4px;
+    opacity: 0;
+    transition: opacity 0.25s;
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  #toast.show { opacity: 1; }
+
+  input[type="file"] { display: none; }
+
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 4px 0;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Watermark<span>Studio</span></h1>
+  <p>Pack + Watermark Tool</p>
+</header>
+
+<div class="main-grid">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+
+    <!-- PACK SECTION -->
+    <div>
+      <div class="section-label">Pakiet ZIP</div>
+      <div class="field-group">
+        <div class="field">
+          <label>Nazwa pliku TXT</label>
+          <input type="text" id="txtName" value="info.txt" placeholder="nazwa.txt">
+        </div>
+        <div class="field">
+          <label>Zawartość TXT</label>
+          <textarea id="txtContent" rows="4">Witaj! To jest mój pakiet.</textarea>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="img-slots">
+          <div class="section-label" style="margin-bottom:4px;">Zdjęcia w pakiecie</div>
+
+          <div class="img-slot">
+            <div class="img-slot-thumb" id="thumb1"><span>IMG1</span></div>
+            <div class="img-slot-info">
+              <div class="img-slot-name">Zdjęcie 1</div>
+              <div class="img-slot-val" id="img1name">brak</div>
+            </div>
+            <button class="btn-small" onclick="document.getElementById('img1input').click()">Zmień</button>
+            <input type="file" id="img1input" accept="image/*" onchange="loadPackImg(1, this)">
+          </div>
+
+          <div class="img-slot">
+            <div class="img-slot-thumb" id="thumb2"><span>IMG2</span></div>
+            <div class="img-slot-info">
+              <div class="img-slot-name">Zdjęcie 2</div>
+              <div class="img-slot-val" id="img2name">brak</div>
+            </div>
+            <button class="btn-small" onclick="document.getElementById('img2input').click()">Zmień</button>
+            <input type="file" id="img2input" accept="image/*" onchange="loadPackImg(2, this)">
+          </div>
+        </div>
+
+        <button class="btn-pack" onclick="downloadPack()">Pobierz pakiet ZIP</button>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- WATERMARK SECTION -->
+    <div>
+      <div class="section-label">Watermark</div>
+
+      <div class="field-group">
+        <div class="field">
+          <label>Tekst watermarku</label>
+          <input type="text" id="wmText" value="© MójBrand" oninput="refreshPreviews()">
+        </div>
+
+        <div class="color-pick">
+          <label>Kolor</label>
+          <input type="color" id="wmColor" value="#ffffff" oninput="refreshPreviews()">
+        </div>
+
+        <div class="range-row">
+          <label>Przezroczystość</label>
+          <input type="range" id="wmOpacity" min="5" max="100" value="60" oninput="refreshPreviews(); document.getElementById('opVal').textContent=this.value+'%'">
+          <span class="range-val" id="opVal">60%</span>
+        </div>
+
+        <div class="range-row">
+          <label>Rozmiar czcionki</label>
+          <input type="range" id="wmSize" min="10" max="80" value="24" oninput="refreshPreviews(); document.getElementById('szVal').textContent=this.value+'px'">
+          <span class="range-val" id="szVal">24px</span>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="section-label" style="margin-bottom:4px;">Preset rozmieszczenia</div>
+        <div class="preset-grid">
+          <button class="preset-btn active" onclick="setPreset('center', this)">Środek</button>
+          <button class="preset-btn" onclick="setPreset('corners', this)">4 rogi</button>
+          <button class="preset-btn" onclick="setPreset('diagonal', this)">Ukośnie</button>
+        </div>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="content">
+
+    <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+      <div class="drop-icon">↑</div>
+      <h2>Upuść plik tutaj</h2>
+      <p>GIF, PNG, JPG, MP4 — obsługiwane</p>
+      <input type="file" id="fileInput" accept=".gif,.png,.jpg,.jpeg,.mp4" multiple onchange="handleFiles(this.files)">
+    </div>
+
+    <div class="preview-area" id="previewArea">
+      <div class="preview-empty" id="emptyMsg">Brak przesłanych plików</div>
+    </div>
+
+  </main>
+</div>
+
+<div id="toast">Zapisano</div>
+
+<!-- JSZip via CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+<script>
+// STATE
+let packImgs = { 1: null, 2: null };
+let uploadedFiles = [];
+let currentPreset = 'center';
+
+// COOKIES HELPERS
+function setCookie(name, val) {
+  const d = new Date(); d.setTime(d.getTime() + (365*24*60*60*1000));
+  document.cookie = encodeURIComponent(name) + '=' + encodeURIComponent(val) + ';expires=' + d.toUTCString() + ';path=/';
+}
+
+function getCookie(name) {
+  const v = document.cookie.split(';').map(c => c.trim()).find(c => c.startsWith(encodeURIComponent(name) + '='));
+  return v ? decodeURIComponent(v.split('=').slice(1).join('=')) : null;
+}
+
+function loadSettings() {
+  const fields = ['txtName','txtContent','wmText','wmColor','wmOpacity','wmSize'];
+  fields.forEach(id => {
+    const saved = getCookie('wms_' + id);
+    if (saved !== null) document.getElementById(id).value = saved;
+  });
+  const preset = getCookie('wms_preset');
+  if (preset) setPresetSilent(preset);
+
+  // update displays
+  document.getElementById('opVal').textContent = document.getElementById('wmOpacity').value + '%';
+  document.getElementById('szVal').textContent = document.getElementById('wmSize').value + 'px';
+
+  // pack imgs from cookies (base64)
+  [1,2].forEach(i => {
+    const saved = getCookie('wms_packimg' + i);
+    const savedName = getCookie('wms_packimgname' + i);
+    if (saved) {
+      const img = new Image();
+      img.src = saved;
+      packImgs[i] = { dataUrl: saved, name: savedName || ('image' + i + '.jpg') };
+      document.getElementById('img' + i + 'name').textContent = savedName || '(загружено)';
+      const th = document.getElementById('thumb' + i);
+      th.innerHTML = '';
+      const ti = document.createElement('img');
+      ti.src = saved;
+      th.appendChild(ti);
+    }
+  });
+}
+
+function saveSettings() {
+  const fields = ['txtName','txtContent','wmText','wmColor','wmOpacity','wmSize'];
+  fields.forEach(id => setCookie('wms_' + id, document.getElementById(id).value));
+  setCookie('wms_preset', currentPreset);
+  showToast('Ustawienia zapisane');
+}
+
+// Auto save on any change
+['txtName','txtContent','wmText','wmColor','wmOpacity','wmSize'].forEach(id => {
+  document.getElementById(id).addEventListener('change', saveSettings);
+});
+
+// PACK IMAGES
+function loadPackImg(idx, input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const dataUrl = e.target.result;
+    packImgs[idx] = { dataUrl, name: file.name };
+    document.getElementById('img' + idx + 'name').textContent = file.name;
+    const th = document.getElementById('thumb' + idx);
+    th.innerHTML = '';
+    const ti = document.createElement('img');
+    ti.src = dataUrl;
+    th.appendChild(ti);
+    // Save (base64 may be large, skip for very large files)
+    if (dataUrl.length < 500000) {
+      setCookie('wms_packimg' + idx, dataUrl);
+      setCookie('wms_packimgname' + idx, file.name);
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+// PRESET
+function setPreset(name, btn) {
+  currentPreset = name;
+  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  setCookie('wms_preset', name);
+  refreshPreviews();
+}
+
+function setPresetSilent(name) {
+  currentPreset = name;
+  const map = ['center','corners','diagonal'];
+  const btns = document.querySelectorAll('.preset-btn');
+  btns.forEach((b, i) => b.classList.toggle('active', map[i] === name));
+}
+
+// DROP ZONE
+const dropZone = document.getElementById('dropZone');
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('drag-over');
+  handleFiles(e.dataTransfer.files);
+});
+
+function handleFiles(files) {
+  const valid = Array.from(files).filter(f => ['gif','png','jpg','jpeg','mp4'].includes(f.name.split('.').pop().toLowerCase()));
+  if (!valid.length) return;
+  let loaded = 0;
+  valid.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      uploadedFiles.push({ name: file.name, dataUrl: e.target.result, type: file.type, file });
+      loaded++;
+      if (loaded === valid.length) renderPreviews();
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+// WATERMARK DRAWING
+function getWmParams() {
+  return {
+    text: document.getElementById('wmText').value || '© Watermark',
+    color: document.getElementById('wmColor').value,
+    opacity: parseInt(document.getElementById('wmOpacity').value) / 100,
+    size: parseInt(document.getElementById('wmSize').value),
+    preset: currentPreset
+  };
+}
+
+function hexToRgba(hex, alpha) {
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+function drawWatermark(ctx, w, h, p) {
+  ctx.save();
+  ctx.font = `${p.size}px 'DM Sans', sans-serif`;
+  ctx.fillStyle = hexToRgba(p.color, p.opacity);
+  ctx.textBaseline = 'middle';
+
+  const pad = p.size * 0.8;
+  const tw = ctx.measureText(p.text).width;
+
+  if (p.preset === 'center') {
+    ctx.textAlign = 'center';
+    ctx.fillText(p.text, w/2, h/2);
+
+  } else if (p.preset === 'corners') {
+    const positions = [
+      { x: pad, y: pad, align: 'left' },
+      { x: w - pad, y: pad, align: 'right' },
+      { x: pad, y: h - pad, align: 'left' },
+      { x: w - pad, y: h - pad, align: 'right' }
+    ];
+    positions.forEach(pos => {
+      ctx.textAlign = pos.align;
+      ctx.fillText(p.text, pos.x, pos.y);
+    });
+
+  } else if (p.preset === 'diagonal') {
+    ctx.textAlign = 'center';
+    const step = Math.max(w, h) * 0.25;
+    const count = Math.ceil(Math.sqrt(w*w + h*h) / step) + 2;
+    ctx.translate(w/2, h/2);
+    ctx.rotate(-Math.PI / 5);
+    for (let row = -count; row <= count; row++) {
+      for (let col = -count; col <= count; col++) {
+        ctx.fillText(p.text, col * (tw + step * 0.6), row * (p.size * 3));
+      }
+    }
+  }
+  ctx.restore();
+}
+
+async function applyWatermarkToImage(dataUrl) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      drawWatermark(ctx, canvas.width, canvas.height, getWmParams());
+      resolve(canvas.toDataURL('image/png'));
+    };
+    img.src = dataUrl;
+  });
+}
+
+// RENDER PREVIEWS
+function renderPreviews() {
+  const area = document.getElementById('previewArea');
+  document.getElementById('emptyMsg').style.display = uploadedFiles.length ? 'none' : 'block';
+
+  // Clear old cards
+  area.querySelectorAll('.preview-card, .section-sep, .all-actions').forEach(el => el.remove());
+
+  uploadedFiles.forEach((f, idx) => {
+    const card = document.createElement('div');
+    card.className = 'preview-card';
+    card.id = 'card_' + idx;
+
+    const header = document.createElement('div');
+    header.className = 'preview-card-header';
+    header.innerHTML = `<span class="preview-card-name">${f.name}</span>`;
+
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'btn-small';
+    removeBtn.textContent = 'Usuń';
+    removeBtn.onclick = () => { uploadedFiles.splice(idx, 1); renderPreviews(); };
+    header.appendChild(removeBtn);
+
+    const wrap = document.createElement('div');
+    wrap.className = 'preview-canvas-wrap';
+
+    const actions = document.createElement('div');
+    actions.className = 'preview-actions';
+
+    const ext = f.name.split('.').pop().toLowerCase();
+
+    if (ext === 'mp4') {
+      // Video player
+      const vid = document.createElement('video');
+      vid.src = f.dataUrl;
+      vid.controls = true;
+      vid.muted = true;
+      vid.style.maxWidth = '100%';
+      vid.style.maxHeight = '460px';
+      wrap.appendChild(vid);
+
+      const dlBtn = document.createElement('button');
+      dlBtn.className = 'btn-dl';
+      dlBtn.textContent = 'Pobierz MP4 (oryginalny)';
+      dlBtn.onclick = () => {
+        const a = document.createElement('a');
+        a.href = f.dataUrl;
+        a.download = f.name;
+        a.click();
+      };
+      actions.appendChild(dlBtn);
+
+      const frameBtn = document.createElement('button');
+      frameBtn.className = 'btn-dl-zip';
+      frameBtn.textContent = 'Eksportuj klatkę z WM';
+      frameBtn.onclick = () => {
+        if (!vid.videoWidth) { showToast('Najpierw odtwórz wideo i zatrzymaj na wybranej klatce'); return; }
+        const canvas = document.createElement('canvas');
+        canvas.width = vid.videoWidth;
+        canvas.height = vid.videoHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(vid, 0, 0, canvas.width, canvas.height);
+        drawWatermark(ctx, canvas.width, canvas.height, getWmParams());
+        const a = document.createElement('a');
+        a.href = canvas.toDataURL('image/png');
+        a.download = f.name.replace('.mp4', '_watermark_frame.png');
+        a.click();
+      };
+      actions.appendChild(frameBtn);
+
+    } else {
+      // Image (PNG, JPG, GIF)
+      const canvas = document.createElement('canvas');
+      canvas.id = 'canvas_' + idx;
+      wrap.appendChild(canvas);
+
+      const img = new Image();
+      img.onload = () => {
+        canvas.width = img.width;
+        canvas.height = img.height;
+        canvas.style.maxWidth = '100%';
+        canvas.style.maxHeight = '460px';
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        drawWatermark(ctx, canvas.width, canvas.height, getWmParams());
+      };
+      img.src = f.dataUrl;
+
+      const dlBtn = document.createElement('button');
+      dlBtn.className = 'btn-dl';
+      dlBtn.textContent = 'Pobierz PNG';
+      dlBtn.onclick = async () => {
+        const wm = await applyWatermarkToImage(f.dataUrl);
+        const a = document.createElement('a');
+        a.href = wm;
+        a.download = f.name.replace(/\.[^.]+$/, '_watermark.png');
+        a.click();
+      };
+      actions.appendChild(dlBtn);
+
+      const dlZipBtn = document.createElement('button');
+      dlZipBtn.className = 'btn-dl-zip';
+      dlZipBtn.textContent = 'Pobierz ZIP';
+      dlZipBtn.onclick = async () => {
+        const wm = await applyWatermarkToImage(f.dataUrl);
+        const zip = new JSZip();
+        zip.file(f.name.replace(/\.[^.]+$/, '_watermark.png'), wm.split(',')[1], { base64: true });
+        const blob = await zip.generateAsync({ type: 'blob' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = f.name.replace(/\.[^.]+$/, '_watermark.zip');
+        a.click();
+      };
+      actions.appendChild(dlZipBtn);
+    }
+
+    card.appendChild(header);
+    card.appendChild(wrap);
+    card.appendChild(actions);
+    area.appendChild(card);
+  });
+
+  if (uploadedFiles.length > 1) {
+    const sep = document.createElement('div');
+    sep.className = 'section-sep';
+    area.appendChild(sep);
+
+    const allWrap = document.createElement('div');
+    allWrap.className = 'all-actions';
+
+    const dlAll = document.createElement('button');
+    dlAll.className = 'btn-dl-zip';
+    dlAll.textContent = 'Pobierz wszystkie z WM jako ZIP';
+    dlAll.onclick = downloadAllWatermarked;
+    allWrap.appendChild(dlAll);
+    area.appendChild(allWrap);
+  }
+}
+
+async function downloadAllWatermarked() {
+  const zip = new JSZip();
+  for (const f of uploadedFiles) {
+    const ext = f.name.split('.').pop().toLowerCase();
+    if (ext === 'mp4') {
+      const base64 = f.dataUrl.split(',')[1];
+      zip.file(f.name, base64, { base64: true });
+    } else {
+      const wm = await applyWatermarkToImage(f.dataUrl);
+      const outName = f.name.replace(/\.[^.]+$/, '_watermark.png');
+      zip.file(outName, wm.split(',')[1], { base64: true });
+    }
+  }
+  const blob = await zip.generateAsync({ type: 'blob' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'watermarked_files.zip';
+  a.click();
+}
+
+function refreshPreviews() {
+  uploadedFiles.forEach((f, idx) => {
+    const ext = f.name.split('.').pop().toLowerCase();
+    if (ext === 'mp4') return;
+    const canvas = document.getElementById('canvas_' + idx);
+    if (!canvas) return;
+    const img = new Image();
+    img.onload = () => {
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0);
+      drawWatermark(ctx, canvas.width, canvas.height, getWmParams());
+    };
+    img.src = f.dataUrl;
+  });
+}
+
+// DOWNLOAD PACK
+async function downloadPack() {
+  const zip = new JSZip();
+  const txtName = document.getElementById('txtName').value || 'info.txt';
+  const txtContent = document.getElementById('txtContent').value || '';
+  zip.file(txtName, txtContent);
+
+  [1,2].forEach(i => {
+    if (packImgs[i]) {
+      const base64 = packImgs[i].dataUrl.split(',')[1];
+      zip.file(packImgs[i].name, base64, { base64: true });
+    }
+  });
+
+  const blob = await zip.generateAsync({ type: 'blob' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'pakiet.zip';
+  a.click();
+  showToast('Pakiet pobrany');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// INIT
+loadSettings();
+</script>
+</body>
+</html>
