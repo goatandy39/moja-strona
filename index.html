@@ -446,7 +446,7 @@
       heroSub.classList.remove('fade-out');
     }, 370);
   }
-  setInterval(rotateHero, 4000);
+  setInterval(rotateHero, 10000);
 
   // === DYNAMICZNY TYTUŁ ZAKŁADKI ===
   const titleAway = [
@@ -469,7 +469,7 @@
       awayTimer = setInterval(() => {
         awayIdx = (awayIdx + 1) % titleAway.length;
         document.title = titleAway[awayIdx];
-      }, 2000);
+      }, 3500);
     } else {
       clearInterval(awayTimer);
       document.title = titleHere[hereIdx % titleHere.length];
@@ -501,24 +501,24 @@
   // 2. Blokada prawego przycisku myszy
   document.addEventListener('contextmenu', (e) => { e.preventDefault(); });
 
-  // 3. Wykrywanie rozmiaru okna — devtools po boku/na dole zmienia wymiary
-  const THRESHOLD = 160;
-  function checkDevtools() {
-    const widthDiff  = window.outerWidth  - window.innerWidth;
-    const heightDiff = window.outerHeight - window.innerHeight;
-    if (widthDiff > THRESHOLD || heightDiff > THRESHOLD) {
-      KILLED();
+  // 3. Wykrywanie devtools — tylko desktop, telefon pomijamy (pasek adresu fałszywie odpala)
+  const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+  if (!isMobile) {
+    const THRESHOLD = 160;
+    function checkDevtools() {
+      const widthDiff = window.outerWidth - window.innerWidth;
+      if (widthDiff > THRESHOLD) KILLED();
     }
-  }
-  setInterval(checkDevtools, 800);
+    setInterval(checkDevtools, 1200);
 
-  // 4. Debugger pułapka — spowalnia i wykrywa otwarty panel
-  (function devtrapLoop() {
-    const start = performance.now();
-    debugger;
-    if (performance.now() - start > 100) KILLED();
-    setTimeout(devtrapLoop, 2000);
-  })();
+    // 4. Debugger pułapka
+    (function devtrapLoop() {
+      const start = performance.now();
+      debugger;
+      if (performance.now() - start > 100) KILLED();
+      setTimeout(devtrapLoop, 2000);
+    })();
+  }
 </script>
 </body>
 </html>
